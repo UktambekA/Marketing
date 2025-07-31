@@ -1177,7 +1177,7 @@ async def add_doctor(
         # Clear cache to reload data (optional - for immediate updates)
         global _cached_data
         _cached_data = None
-        get_cached_sheets_data.cache_clear()
+        # get_cached_sheets_data.cache_clear()
         
         return {"success": True, "message": "✅ Янги врач муваффақиятли қўшилди!"}
         
