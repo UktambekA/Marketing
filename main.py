@@ -46,7 +46,7 @@ def get_google_credentials():
 client = None
 _cached_data = None
 
-@lru_cache(maxsize=1)
+# @lru_cache(maxsize=1)
 def get_cached_sheets_data():
     global client, _cached_data
     try:
