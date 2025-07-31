@@ -1,3 +1,4 @@
+
 from fastapi import FastAPI, Form, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -43,58 +44,37 @@ def get_google_credentials():
 
 # Global variables with caching
 client = None
-# _cached_data = None
+_cached_data = None
 
-# @lru_cache(maxsize=1)
+@lru_cache(maxsize=1)
 def get_cached_sheets_data():
-    global client
+    global client, _cached_data
     try:
         if not client:
             client = get_google_credentials()
         
-        # if client and not _cached_data:
-        #     SPREADSHEET_NAME = "DoriXarajatlar"
-        #     spreadsheet = client.open(SPREADSHEET_NAME)
-            
-        #     shifokorlar_sheet = spreadsheet.worksheet("Shifokorlar")
-        #     dorixonalar_sheet = spreadsheet.worksheet("Dorixonalar")
-        #     ismlar_sheet = spreadsheet.worksheet("IsmFamiliya")
-        #     regionlar_sheet = spreadsheet.worksheet("Regionlar")
-            
-        #     shifokorlar = shifokorlar_sheet.col_values(1)[1:]
-        #     dorixonalar = dorixonalar_sheet.col_values(1)[1:]
-        #     ismlar = ismlar_sheet.col_values(1)[1:]
-        #     regionlar = regionlar_sheet.col_values(1)[1:]
-            
-        #     _cached_data = {
-        #         'shifokorlar': shifokorlar,
-        #         'dorixonalar': dorixonalar,
-        #         'ismlar': ismlar,
-        #         'regionlar': regionlar
-        #     }
-            
-        # return _cached_data
-        if client:
+        if client and not _cached_data:
             SPREADSHEET_NAME = "DoriXarajatlar"
             spreadsheet = client.open(SPREADSHEET_NAME)
-        
+            
             shifokorlar_sheet = spreadsheet.worksheet("Shifokorlar")
             dorixonalar_sheet = spreadsheet.worksheet("Dorixonalar")
             ismlar_sheet = spreadsheet.worksheet("IsmFamiliya")
             regionlar_sheet = spreadsheet.worksheet("Regionlar")
-        
+            
             shifokorlar = shifokorlar_sheet.col_values(1)[1:]
             dorixonalar = dorixonalar_sheet.col_values(1)[1:]
             ismlar = ismlar_sheet.col_values(1)[1:]
             regionlar = regionlar_sheet.col_values(1)[1:]
-        
-            return {
+            
+            _cached_data = {
                 'shifokorlar': shifokorlar,
                 'dorixonalar': dorixonalar,
                 'ismlar': ismlar,
                 'regionlar': regionlar
             }
-
+            
+        return _cached_data
     except Exception as e:
         print(f"Error getting cached data: {e}")
         return None
@@ -1195,9 +1175,9 @@ async def add_doctor(
         await asyncio.to_thread(yangi_vrach_sheet.append_row, yangi_qator)
         
         # Clear cache to reload data (optional - for immediate updates)
-        # global _cached_data
-        # _cached_data = None
-        # get_cached_sheets_data.cache_clear()
+        global _cached_data
+        _cached_data = None
+        get_cached_sheets_data.cache_clear()
         
         return {"success": True, "message": "✅ Янги врач муваффақиятли қўшилди!"}
         
